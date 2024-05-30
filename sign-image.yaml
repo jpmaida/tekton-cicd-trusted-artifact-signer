@@ -1,0 +1,71 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: sign-image
+spec:
+  workspaces:
+    - name: ca-cert
+      # mountPath: /etc/pki/ca-trust/source/anchors/
+      mountPath: /etc/pki/tls/certs/
+  steps:
+    - image: 'image-registry.openshift-image-registry.svc:5000/cicd/rhtas-cosign-rhel9@sha256:652d81daa2f58119e12824a2d6cef5568b0b22539194099baafda9aa4d6a38f6'
+      name: sign
+      script: |
+        echo "Initializing..."
+
+        # export TUF_URL="http://tuf.trusted-artifact-signer.svc:80"
+        # export OIDC_ISSUER_URL="https://keycloak.sso.svc:8443/auth/realms/trusted-artifact-signer"
+        # export COSIGN_FULCIO_URL="http://fulcio-server.trusted-artifact-signer.svc:80"
+        # export COSIGN_REKOR_URL="http://rekor-server.trusted-artifact-signer.svc:5000"
+        # export COSIGN_MIRROR="http://tuf.trusted-artifact-signer.svc:80"
+        # export COSIGN_ROOT="http://tuf.trusted-artifact-signer.svc:80/root.json"
+        # export COSIGN_OIDC_CLIENT_ID="trusted-artifact-signer"
+        # export COSIGN_OIDC_ISSUER="https://keycloak.sso.svc:8443/auth/realms/trusted-artifact-signer"
+        # export COSIGN_CERTIFICATE_OIDC_ISSUER="https://keycloak.sso.svc:8443/auth/realms/trusted-artifact-signer"
+        # export COSIGN_YES="true"
+        # export SIGSTORE_FULCIO_URL="http://fulcio-server.trusted-artifact-signer.svc:80"
+        # export SIGSTORE_OIDC_ISSUER="https://keycloak.sso.svc:8443/auth/realms/trusted-artifact-signer"
+        # export SIGSTORE_REKOR_URL="http://rekor-server-trusted-artifact-signer.apps-crc.testing"
+        # export REKOR_REKOR_SERVER="http://rekor-server-trusted-artifact-signer.apps-crc.testing"
+
+        export TUF_URL="https://tuf-trusted-artifact-signer.apps-crc.testing"
+        export OIDC_ISSUER_URL="https://keycloak-sso.apps-crc.testing/auth/realms/trusted-artifact-signer"
+        export COSIGN_FULCIO_URL="https://fulcio-server-trusted-artifact-signer.apps-crc.testing"
+        export COSIGN_REKOR_URL="https://rekor-server-trusted-artifact-signer.apps-crc.testing"
+        export COSIGN_MIRROR="https://tuf-trusted-artifact-signer.apps-crc.testing"
+        export COSIGN_ROOT="https://tuf-trusted-artifact-signer.apps-crc.testing/root.json"
+        export COSIGN_OIDC_CLIENT_ID="trusted-artifact-signer"
+        export COSIGN_OIDC_ISSUER="https://keycloak-sso.apps-crc.testing/auth/realms/trusted-artifact-signer"
+        export COSIGN_CERTIFICATE_OIDC_ISSUER="https://keycloak-sso.apps-crc.testing/auth/realms/trusted-artifact-signer"
+        export COSIGN_YES="true"
+        export SIGSTORE_FULCIO_URL="https://fulcio-server-trusted-artifact-signer.apps-crc.testing"
+        export SIGSTORE_OIDC_ISSUER="https://keycloak-sso.apps-crc.testing/auth/realms/trusted-artifact-signer"
+        export SIGSTORE_REKOR_URL="https://rekor-server-trusted-artifact-signer.apps-crc.testing"
+        export REKOR_REKOR_SERVER="https://rekor-server-trusted-artifact-signer.apps-crc.testing"
+
+        cosign initialize
+
+        echo "Obtaining OIDC token..."
+
+        export KEYCLOAK_URL=$OIDC_ISSUER_URL/protocol/openid-connect/token
+        export CLIENT_ID="trusted-artifact-signer"
+        export CLIENT_SECRET="5PhCJ4MCOheXqK3MsENNLbiEd1udA5QS"
+        export USER="jdoe@redhat.com"
+        export PASS="secure"
+
+        RESPONSE=$(curl -v -k -X POST "$KEYCLOAK_URL" \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          -d "grant_type=password" \
+          -d "client_id=$CLIENT_ID" \
+          -d "client_secret=$CLIENT_SECRET" \
+          -d "username=jdoe@redhat.com" \
+          -d "password=secure")
+
+        TOKEN=$(echo $RESPONSE | grep -o '"access_token":"[^"]*' | awk -F'"' '{print $4}')
+        
+        echo $TOKEN
+
+        echo "Signing..."
+        export SIGSTORE_ID_TOKEN=$TOKEN
+        #COSIGN_EXPERIMENTAL=1 cosign sign -y image-registry.openshift-image-registry.svc:5000/game/ping-pong:latest
+        cosign sign -y image-registry.openshift-image-registry.svc:5000/game/ping-pong:latest

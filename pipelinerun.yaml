@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  annotations:
+    chains.tekton.dev/signed: 'true'
+    pipeline.openshift.io/started-by: kubeadmin
+  name: new-pipeline
+  finalizers:
+    - chains.tekton.dev/pipelinerun
+  labels:
+    tekton.dev/pipeline: new-pipeline
+spec:
+  pipelineRef:
+    name: new-pipeline
+  taskRunTemplate:
+    serviceAccountName: pipeline
+  timeouts:
+    pipeline: 1h0m0s
+  workspaces:
+    - name: shared-ws
+      persistentVolumeClaim:
+        claimName: shared-ws-pvc
+    - name: ca-cert
+      configMap:
+        name: config-registry-cert
