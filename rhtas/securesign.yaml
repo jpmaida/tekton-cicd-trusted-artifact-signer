@@ -2,6 +2,7 @@ apiVersion: rhtas.redhat.com/v1alpha1
 kind: Securesign
 metadata:
   name: securesign-sample
+  namespace: trusted-artifact-signer
   finalizers:
     - tas.rhtas.redhat.com
   labels:

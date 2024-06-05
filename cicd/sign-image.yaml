@@ -13,21 +13,6 @@ spec:
       script: |
         echo "Initializing..."
 
-        # export TUF_URL="http://tuf.trusted-artifact-signer.svc:80"
-        # export OIDC_ISSUER_URL="https://keycloak.sso.svc:8443/auth/realms/trusted-artifact-signer"
-        # export COSIGN_FULCIO_URL="http://fulcio-server.trusted-artifact-signer.svc:80"
-        # export COSIGN_REKOR_URL="http://rekor-server.trusted-artifact-signer.svc:5000"
-        # export COSIGN_MIRROR="http://tuf.trusted-artifact-signer.svc:80"
-        # export COSIGN_ROOT="http://tuf.trusted-artifact-signer.svc:80/root.json"
-        # export COSIGN_OIDC_CLIENT_ID="trusted-artifact-signer"
-        # export COSIGN_OIDC_ISSUER="https://keycloak.sso.svc:8443/auth/realms/trusted-artifact-signer"
-        # export COSIGN_CERTIFICATE_OIDC_ISSUER="https://keycloak.sso.svc:8443/auth/realms/trusted-artifact-signer"
-        # export COSIGN_YES="true"
-        # export SIGSTORE_FULCIO_URL="http://fulcio-server.trusted-artifact-signer.svc:80"
-        # export SIGSTORE_OIDC_ISSUER="https://keycloak.sso.svc:8443/auth/realms/trusted-artifact-signer"
-        # export SIGSTORE_REKOR_URL="http://rekor-server-trusted-artifact-signer.apps-crc.testing"
-        # export REKOR_REKOR_SERVER="http://rekor-server-trusted-artifact-signer.apps-crc.testing"
-
         export TUF_URL="https://tuf-trusted-artifact-signer.apps-crc.testing"
         export OIDC_ISSUER_URL="https://keycloak-sso.apps-crc.testing/auth/realms/trusted-artifact-signer"
         export COSIGN_FULCIO_URL="https://fulcio-server-trusted-artifact-signer.apps-crc.testing"
@@ -49,7 +34,7 @@ spec:
 
         export KEYCLOAK_URL=$OIDC_ISSUER_URL/protocol/openid-connect/token
         export CLIENT_ID="trusted-artifact-signer"
-        export CLIENT_SECRET="5PhCJ4MCOheXqK3MsENNLbiEd1udA5QS"
+        export CLIENT_SECRET="sE69nje3OLW5WTVsusgNm5ZXApJ25NVY"
         export USER="jdoe@redhat.com"
         export PASS="secure"
 

@@ -11,10 +11,19 @@ oc new-project cicd
 oc apply -f rhsso/operator-group.yaml
 oc apply -f rhsso/subscription.yaml
 oc apply -f rhsso/ -n sso
+```
 
+Acompanhe o status dos pods
+Obter secret do client e aplicar em task
+
+```
 oc apply -f rhtas/subscription.yaml
-oc apply -f rhtas/ -n trusted-artifact-signer
+oc apply -f rhtas/
+```
 
+Acompanhe o status dos pods
+
+```
 oc apply -f cicd/subscription.yaml
 oc adm policy add-role-to-user edit system:serviceaccount:cicd:pipeline -n game
 oc apply -f cicd/sign-image.yaml -n cicd
