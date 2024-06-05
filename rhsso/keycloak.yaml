@@ -1,0 +1,48 @@
+apiVersion: keycloak.org/v1alpha1
+kind: Keycloak
+metadata:
+  labels:
+    app: sso
+  name: keycloak
+spec:
+  externalAccess:
+    enabled: true
+  instances: 1
+  keycloakDeploymentSpec:
+    imagePullPolicy: Always
+  postgresDeploymentSpec:
+    imagePullPolicy: Always
+status:
+  credentialSecret: credential-keycloak
+  externalURL: 'https://keycloak-sso.apps-crc.testing'
+  internalURL: 'https://keycloak.sso.svc:8443'
+  message: ''
+  phase: reconciling
+  ready: true
+  secondaryResources:
+    ServiceMonitor:
+      - keycloak-service-monitor
+    Deployment:
+      - keycloak-postgresql
+    PrometheusRule:
+      - keycloak
+    Route:
+      - keycloak
+      - keycloak-metrics-rewrite
+    PersistentVolumeClaim:
+      - keycloak-postgresql-claim
+    Secret:
+      - credential-keycloak
+      - keycloak-db-secret
+    Ingress:
+      - keycloak
+    Service:
+      - keycloak-postgresql
+      - keycloak
+      - keycloak-discovery
+      - keycloak-monitoring
+    StatefulSet:
+      - keycloak
+    ConfigMap:
+      - keycloak-probes
+  version: main
