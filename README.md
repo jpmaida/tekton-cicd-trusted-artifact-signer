@@ -8,12 +8,16 @@ oc new-project sso
 oc new-project game
 oc new-project cicd
 
+oc apply -f rhsso/operator-group.yaml
 oc apply -f rhsso/subscription.yaml
 oc apply -f rhsso/ -n sso
+
 oc apply -f rhtas/subscription.yaml
 oc apply -f rhtas/ -n trusted-artifact-signer
+
 oc apply -f cicd/subscription.yaml
-oc apply -f sign-image -n cicd
-oc apply -f pipeline.yaml -n cicd
-oc apply -f pipelinerun.yaml -n cicd
+oc adm policy add-role-to-user edit system:serviceaccount:cicd:pipeline -n game
+oc apply -f cicd/sign-image.yaml -n cicd
+oc apply -f cicd/pipeline.yaml -n cicd
+oc apply -f cicd/pipelinerun.yaml -n cicd
 ```
