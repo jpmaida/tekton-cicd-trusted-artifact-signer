@@ -59,6 +59,7 @@ Once is retrieved, update `CLIENT_SECRET` entry inside `cicd/secret.yaml`. Apply
 oc apply -f cicd/secret.yaml -n cicd
 oc apply -f cicd/ocp-cert-configmap.yaml -n cicd
 oc adm policy add-role-to-user edit system:serviceaccount:cicd:pipeline -n game
+```
 
 5 - Run the pipeline
 
