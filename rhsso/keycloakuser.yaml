@@ -1,0 +1,23 @@
+apiVersion: keycloak.org/v1alpha1
+kind: KeycloakUser
+metadata:
+  name: jdoe
+  namespace: sso
+  labels:
+    app: sso
+spec:
+  realmSelector:
+    matchLabels:
+      app: sso
+  user:
+    credentials:
+      - temporary: false
+        type: password
+        value: secure
+    email: jdoe@redhat.com
+    emailVerified: true
+    enabled: true
+    firstName: John
+    id: 66d09642-e6fc-4c80-b7d5-795b9d4e4895
+    lastName: Doe
+    username: jdoe
