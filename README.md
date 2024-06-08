@@ -1,5 +1,5 @@
 # CICD using Tekton and Red Hat Trusted Artifact Signer
-Repository dedicated to CICD pipeline that generates application's container images and sign them using Red Hat Trusted Artifact Signer
+Repository dedicated to CICD pipeline that generates application's container images and sign them using Red Hat Trusted Artifact Signer. This entire environment was built using OpenShift 4.14.
 
 ## Install
 
@@ -15,10 +15,16 @@ oc new-project cicd
 ```
 oc apply -f rhsso/operator-group.yaml
 oc apply -f rhsso/subscription.yaml
+```
+
+Wait for the operator be in *Succeeded* state.
+
+```
 oc apply -f rhsso/ -n sso
 ```
 
-Wait for all pods be in *Running* state
+Wait for all pods be in *Running* state.
+
 ```
 oc get pods -w -n sso
 ```
@@ -26,10 +32,16 @@ oc get pods -w -n sso
 3 - Install Red Hat Trusted Artifact Signer
 ```
 oc apply -f rhtas/subscription.yaml
+```
+
+Wait for the operator be in *Succeeded* state.
+
+```
 oc apply -f rhtas/
 ```
 
 Wait all pods be in *Running* state.
+
 ```
 oc get pods -w -n trusted-artifact-signer
 ```
@@ -39,7 +51,7 @@ oc get pods -w -n trusted-artifact-signer
 oc apply -f cicd/subscription.yaml
 ```
 
-Wait operator's provisioning.
+Wait for the operator be in *Succeeded* state and all pods in `openshift-pipelines` in *Running* state.
 
 ```
 oc apply -f cicd/sign-image.yaml -n cicd
@@ -53,7 +65,13 @@ Retrieve RHSSO's client secret in order to use it in `cicd/secret.yaml`. First, 
 oc get secrets credential-keycloak -n sso -o jsonpath='{.data.ADMIN_PASSWORD}' | base64 -d
 ```
 
-Once is retrieved, update `CLIENT_SECRET` entry inside `cicd/secret.yaml`. Apply the following YAMLs.
+Second, retrieve RHSSO admin's URL, and log in using user `admin` and the password retrieved above.
+
+```shell
+echo https://$(oc get routes keycloak -n sso -o jsonpath='{.spec.host}')/auth/admin
+```
+
+Once you're logged in, update `CLIENT_SECRET` entry, inside `cicd/secret.yaml`, with **client trusted-artifact-signer secret's value (Confidentials tab)**. After that, apply the following YAMLs.
 
 ```
 oc apply -f cicd/secret.yaml -n cicd
@@ -66,3 +84,5 @@ oc adm policy add-role-to-user edit system:serviceaccount:cicd:pipeline -n game
 ```
 oc apply -f cicd/pipelinerun.yaml -n cicd
 ```
+
+## Tips and tricks
