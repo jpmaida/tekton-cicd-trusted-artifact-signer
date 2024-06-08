@@ -8,6 +8,5 @@ spec:
   resources:
     requests:
       storage: 2Gi
-  volumeName: pvc-80c129bd-5090-42e3-bc87-ce6b9bb45868
   storageClassName: crc-csi-hostpath-provisioner
   volumeMode: Filesystem
