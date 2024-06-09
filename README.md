@@ -86,3 +86,5 @@ oc apply -f cicd/pipelinerun.yaml -n cicd
 ```
 
 ## Tips and tricks
+* Sometimes RHTAS provisioning fails because trillian-db face some problems with pod creation. Delete all pods and scale trillian-db up.
+* Sometimes pipeline run fails because there is no cluster tasks to be found. Case this happens check **pods** in **openshift-pipelines** namespace. All pods must be in *Running* state so cluster tasks are provided.
