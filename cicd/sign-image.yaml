@@ -7,7 +7,7 @@ spec:
     - name: ca-cert
       mountPath: /etc/pki/tls/certs/
   steps:
-    - image: 'image-registry.openshift-image-registry.svc:5000/cicd/rhtas-cosign-rhel9@sha256:652d81daa2f58119e12824a2d6cef5568b0b22539194099baafda9aa4d6a38f6'
+    - image: 'image-registry.openshift-image-registry.svc:5000/cicd/rhtas-cosign-rhel9:1.0.1-1716203248'
       name: sign
       env:
         - name: CLIENT_SECRET
