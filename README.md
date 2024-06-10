@@ -74,9 +74,11 @@ echo https://$(oc get routes keycloak -n sso -o jsonpath='{.spec.host}')/auth/ad
 Once you're logged in, update `CLIENT_SECRET` entry, inside `cicd/secret.yaml`, with **client trusted-artifact-signer secret's value (Confidentials tab)**. After that, apply the following YAMLs.
 
 ```
-oc apply -f cicd/secret.yaml -n cicd
+oc apply -f cicd/keyless-signing-info.yaml -n cicd
 oc apply -f cicd/ocp-cert-configmap.yaml -n cicd
+oc apply -f cicd/quay-creds.yaml -n cicd
 oc adm policy add-role-to-user edit system:serviceaccount:cicd:pipeline -n game
+oc secret link pipeline quay-creds --for=mount -n cicd
 ```
 
 5 - Run the pipeline
