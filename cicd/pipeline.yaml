@@ -74,9 +74,27 @@ spec:
       workspaces:
         - name: source
           workspace: shared-ws
-    - name: sign-image
+    - name: copy-image
+      taskRef:
+        kind: ClusterTask
+        name: skopeo-copy
+      params:
+        - name: srcImageURL
+          value: docker://image-registry.openshift-image-registry.svc:5000/game/ping-pong:latest
+        - name: destImageURL
+          value: docker://quay.io/jpmaida1/ping-pong:latest
+        - name: srcTLSverify
+          value: 'false'
+        - name: destTLSverify
+          value: 'false'
       runAfter:
         - buildah
+      workspaces:
+        - name: images-url
+          workspace: images-url
+    - name: sign-image
+      runAfter:
+        - copy-image
       taskRef:
         kind: Task
         name: sign-image
@@ -86,3 +104,4 @@ spec:
   workspaces:
     - name: shared-ws
     - name: ca-cert
+    - name: images-url

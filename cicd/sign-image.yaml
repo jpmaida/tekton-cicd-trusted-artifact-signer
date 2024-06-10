@@ -66,4 +66,4 @@ spec:
         
         echo "Signing..."
         export SIGSTORE_ID_TOKEN=$TOKEN
-        cosign sign -y image-registry.openshift-image-registry.svc:5000/game/ping-pong:latest
+        cosign sign -y quay.io/jpmaida1/ping-pong:latest

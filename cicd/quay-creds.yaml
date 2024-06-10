@@ -1,0 +1,10 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: quay-creds
+  annotations:
+    tekton.dev/docker-0: 'https://quay.io'
+stringData:
+  password: <QUAY_PASSWORD>
+  username: <USER_PASSWORD>
+type: kubernetes.io/basic-auth
