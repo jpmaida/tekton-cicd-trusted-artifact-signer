@@ -1,0 +1,50 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: pipeline-verify-signature
+  namespace: cicd
+spec:
+  params:
+    - name: TAG_TO_BE_VERIFIED
+      type: string
+    - name: SIGNER_EMAIL
+      type: string
+  tasks:
+    - name: verify
+      taskRef:
+        kind: Task
+        name: verify-signature
+      params:
+        - name: TAG_TO_BE_VERIFIED
+          value: $(params.TAG_TO_BE_VERIFIED)
+        - name: SIGNER_EMAIL
+          value: $(params.SIGNER_EMAIL)
+      workspaces:
+        - name: ca-cert
+          workspace: ca-cert
+    - name: grype-scan
+      taskRef:
+        kind: Task
+        name: grype
+      runAfter:
+        - verify
+      params:
+        - name: ARGS
+          value: ["quay.io/jpmaida1/ping-pong:$(params.TAG_TO_BE_VERIFIED)"]
+    - name: trivy-scan
+      taskRef:
+        kind: Task
+        name: trivy-scanner
+      runAfter:
+        - verify
+      params:
+        - name: ARGS
+          value: ["image","--timeout=15m0s"]
+        - name: IMAGE_PATH
+          value: "quay.io/jpmaida1/ping-pong:$(params.TAG_TO_BE_VERIFIED)"
+      workspaces:
+        - name: manifest-dir
+          workspace: manifests
+  workspaces:
+    - name: ca-cert
+    - name: manifests

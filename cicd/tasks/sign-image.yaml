@@ -6,9 +6,26 @@ spec:
   workspaces:
     - name: ca-cert
       mountPath: /etc/pki/tls/certs/
+    - name: source
+  params:
+    - name: TAG_TO_BE_SIGNED
+      type: string
   steps:
-    - image: 'image-registry.openshift-image-registry.svc:5000/cicd/rhtas-cosign-rhel9:1.0.1-1716203248'
-      name: sign
+    # - name: custom-bom
+    #   image: registry.access.redhat.com/ubi8-minimal:8.10-1018
+    #   workingDir: $(workspaces.source.path)
+    #   script: |
+    #     curl http://images.pexels.com/photos/1000366/pexels-photo-1000366.jpeg\?auto\=compress\&cs\=tinysrgb\&w\=1260\&h\=750\&dpr\=1 -o img.jpeg
+    - name: sbom-creation
+      image: registry.access.redhat.com/rh-syft-tech-preview/syft-rhel9:1.4.1-1718010833
+      workingDir: $(workspaces.source.path)
+      script: |
+        echo "SBOM creation"
+
+        syft -o spdx-json quay.io/jpmaida1/ping-pong:$(params.TAG_TO_BE_SIGNED) > ping-pong.sbom
+    - name: attach-and-attest-and-sign
+      image: 'image-registry.openshift-image-registry.svc:5000/cicd/rhtas-cosign-rhel9:1.0.2-1719417920'
+      workingDir: $(workspaces.source.path)
       env:
         - name: CLIENT_SECRET
           valueFrom:
@@ -63,7 +80,16 @@ spec:
           -d "password=$PASS")
 
         TOKEN=$(echo $RESPONSE | grep -o '"access_token":"[^"]*' | awk -F'"' '{print $4}')
-        
-        echo "Signing..."
         export SIGSTORE_ID_TOKEN=$TOKEN
-        cosign sign -y quay.io/jpmaida1/ping-pong:latest
+        
+        echo "Attaching SBOM..."
+        cosign attach sbom --sbom ping-pong.sbom quay.io/jpmaida1/ping-pong:$(params.TAG_TO_BE_SIGNED)
+
+        echo "Attesting..."
+        cosign attest --predicate ping-pong.sbom quay.io/jpmaida1/ping-pong:$(params.TAG_TO_BE_SIGNED)
+        
+        # This is a custom attestation based on a random imagem from the internet. This proves that's possible to generate attestations based on whatever you want.
+        # cosign attest --predicate img.jpeg quay.io/jpmaida1/ping-pong:$(params.TAG_TO_BE_SIGNED)
+        
+        # echo "Signing..."
+        cosign sign -y quay.io/jpmaida1/ping-pong:$(params.TAG_TO_BE_SIGNED)

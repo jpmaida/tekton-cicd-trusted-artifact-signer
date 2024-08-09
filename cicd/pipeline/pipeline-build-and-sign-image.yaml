@@ -1,8 +1,10 @@
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: new-pipeline
+  name: pipeline-build-and-sign-image
 spec:
+  params:
+    - name: TAG_TO_BE_DEPLOYED
   tasks:
     - name: git-clone
       params:
@@ -82,7 +84,7 @@ spec:
         - name: srcImageURL
           value: docker://image-registry.openshift-image-registry.svc:5000/game/ping-pong:latest
         - name: destImageURL
-          value: docker://quay.io/jpmaida1/ping-pong:latest
+          value: docker://quay.io/jpmaida1/ping-pong:$(params.TAG_TO_BE_DEPLOYED)
         - name: srcTLSverify
           value: 'false'
         - name: destTLSverify
@@ -98,9 +100,14 @@ spec:
       taskRef:
         kind: Task
         name: sign-image
+      params:
+        - name: TAG_TO_BE_SIGNED
+          value: $(params.TAG_TO_BE_DEPLOYED)
       workspaces:
         - name: ca-cert
           workspace: ca-cert
+        - name: source
+          workspace: shared-ws
   workspaces:
     - name: shared-ws
     - name: ca-cert

@@ -5,6 +5,6 @@ metadata:
   annotations:
     tekton.dev/docker-0: 'https://quay.io'
 stringData:
-  password: <QUAY_PASSWORD>
-  username: <USER_PASSWORD>
+  password: "<password>"
+  username: "<username>"
 type: kubernetes.io/basic-auth

@@ -4,14 +4,17 @@ metadata:
   annotations:
     chains.tekton.dev/signed: 'true'
     pipeline.openshift.io/started-by: kubeadmin
-  name: new-pipeline
+  generateName: pipeline-build-and-sign-image-
   finalizers:
     - chains.tekton.dev/pipelinerun
   labels:
-    tekton.dev/pipeline: new-pipeline
+    tekton.dev/pipeline: pipeline-build-and-sign-image
 spec:
+  params:
+    - name: TAG_TO_BE_DEPLOYED
+      value: '1.0'
   pipelineRef:
-    name: new-pipeline
+    name: pipeline-build-and-sign-image
   taskRunTemplate:
     serviceAccountName: pipeline
   timeouts:

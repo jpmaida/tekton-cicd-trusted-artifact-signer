@@ -4,7 +4,7 @@ metadata:
   name: keyless-signing-info
 stringData:
   CLIENT_ID: trusted-artifact-signer
-  CLIENT_SECRET: <ADD_SECRET_HERE>
+  CLIENT_SECRET: e3cfQBcXyM0UQ4xUYE76HKDBnhhN13Ds
   PASSWORD: secure
   USER: jdoe@redhat.com
 type: Opaque

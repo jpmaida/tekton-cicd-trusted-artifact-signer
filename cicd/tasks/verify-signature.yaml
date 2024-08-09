@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: verify-signature
+spec:
+  workspaces:
+    - name: ca-cert
+      mountPath: /etc/pki/tls/certs/
+  params:
+    - name: TAG_TO_BE_VERIFIED
+      type: string
+    - name: SIGNER_EMAIL
+      type: string
+  steps:
+    - image: 'image-registry.openshift-image-registry.svc:5000/cicd/rhtas-cosign-rhel9:1.0.2-1719417920'
+      name: verify-signature-and-attestation
+      script: |
+        echo "Initializing..."
+
+        export TUF_URL="https://tuf-trusted-artifact-signer.apps-crc.testing"
+        export OIDC_ISSUER_URL="https://keycloak-sso.apps-crc.testing/auth/realms/trusted-artifact-signer"
+        export COSIGN_FULCIO_URL="https://fulcio-server-trusted-artifact-signer.apps-crc.testing"
+        export COSIGN_REKOR_URL="https://rekor-server-trusted-artifact-signer.apps-crc.testing"
+        export COSIGN_MIRROR="https://tuf-trusted-artifact-signer.apps-crc.testing"
+        export COSIGN_ROOT="https://tuf-trusted-artifact-signer.apps-crc.testing/root.json"
+        export COSIGN_OIDC_CLIENT_ID="trusted-artifact-signer"
+        export COSIGN_OIDC_ISSUER="https://keycloak-sso.apps-crc.testing/auth/realms/trusted-artifact-signer"
+        export COSIGN_CERTIFICATE_OIDC_ISSUER="https://keycloak-sso.apps-crc.testing/auth/realms/trusted-artifact-signer"
+        export COSIGN_YES="true"
+        export SIGSTORE_FULCIO_URL="https://fulcio-server-trusted-artifact-signer.apps-crc.testing"
+        export SIGSTORE_OIDC_ISSUER="https://keycloak-sso.apps-crc.testing/auth/realms/trusted-artifact-signer"
+        export SIGSTORE_REKOR_URL="https://rekor-server-trusted-artifact-signer.apps-crc.testing"
+        export REKOR_REKOR_SERVER="https://rekor-server-trusted-artifact-signer.apps-crc.testing"
+
+        cosign initialize
+
+        echo "Verifying signatures..."
+        cosign verify quay.io/jpmaida1/ping-pong:$(params.TAG_TO_BE_VERIFIED) --certificate-identity=$(params.SIGNER_EMAIL)
+        
+        echo "Verifying attestations..."
+        cosign verify-attestation quay.io/jpmaida1/ping-pong:$(params.TAG_TO_BE_VERIFIED) --certificate-identity=$(params.SIGNER_EMAIL)

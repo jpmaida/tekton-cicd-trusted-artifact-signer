@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: pipeline-verify-signature-
+  finalizers:
+    - chains.tekton.dev/pipelinerun
+  labels:
+    tekton.dev/pipeline: pipeline-verify-signature
+spec:
+  params:
+    - name: TAG_TO_BE_VERIFIED
+      value: '1.0'
+    - name: SIGNER_EMAIL
+      value: jdoe@redhat.com
+  pipelineRef:
+    name: pipeline-verify-signature
+  taskRunTemplate:
+    serviceAccountName: pipeline
+  timeouts:
+    pipeline: 1h0m0s
+  workspaces:
+    - configMap:
+        name: config-registry-cert
+      name: ca-cert
+    - name: manifests
+      persistentVolumeClaim:
+        claimName: trivy-database
