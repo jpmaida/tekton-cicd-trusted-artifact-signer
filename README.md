@@ -48,15 +48,18 @@ oc get pods -w -n trusted-artifact-signer
 
 4 - Install OpenShift Pipelines and CICD pipeline
 ```
-oc apply -f cicd/subscription.yaml
+oc apply -f cicd/install/subscription.yaml
 ```
 
 Wait for the operator be in *Succeeded* state and all pods in `openshift-pipelines` in *Running* state.
 
-```
-oc apply -f cicd/sign-image.yaml -n cicd
-oc apply -f cicd/pipeline.yaml -n cicd
-oc apply -f cicd/pipeline-workspace-pvc.yaml -n cicd
+```shell
+oc apply -f cicd/tasks/ -n cicd
+curl -sL https://raw.githubusercontent.com/tektoncd/catalog/main/task/grype/0.1/grype.yaml | oc apply -n cicd -f -
+curl -sL https://raw.githubusercontent.com/tektoncd/catalog/main/task/trivy-scanner/0.2/trivy-scanner.yaml | oc apply -n cicd -f -
+oc apply -f cicd/pipeline/pipeline-build-and-sign-image.yaml -n cicd
+oc apply -f cicd/pipeline/pipeline-workspace-pvc.yaml -n cicd
+oc apply -f cicd/pipeline/pipeline-verify-signature.yaml -n cicd
 ```
 
 Retrieve RHSSO's client secret in order to use it in `cicd/secret.yaml`. First, retrieve RHSSO admin's password.
@@ -71,20 +74,45 @@ Second, retrieve RHSSO admin's URL, and log in using user `admin` and the passwo
 echo https://$(oc get routes keycloak -n sso -o jsonpath='{.spec.host}')/auth/admin
 ```
 
-Once you're logged in, update `CLIENT_SECRET` entry, inside `cicd/secret.yaml`, with **client trusted-artifact-signer secret's value (Confidentials tab)**. After that, apply the following YAMLs.
+Once you're logged in, update `CLIENT_SECRET` entry, inside `cicd/keyless-signing-info.yaml`, with **client trusted-artifact-signer secret's value (Confidentials tab)**.
 
+It's necessary to update username and password from the `cicd/quay-creds.yaml` file with your **Quay.io credentials**. Without that **skopeo copy task will fail**.
+
+You need to import **RHTAS Cosign image** to your cluster so the **sign-image** task can use it. Execute the following steps.
+
+```shell
+podman login registry.redhat.io
 ```
-oc apply -f cicd/keyless-signing-info.yaml -n cicd
-oc apply -f cicd/ocp-cert-configmap.yaml -n cicd
-oc apply -f cicd/quay-creds.yaml -n cicd
+
+You'll be prompted to inform username and password. Pass those informations and pull the image.
+
+```shell
+podman pull registry.redhat.io/rhtas/cosign-rhel9:1.0.2-1719417920
+```
+
+Push the fresh pull image into your cluster.
+
+```shell
+podman tag registry.redhat.io/rhtas/cosign-rhel9:1.0.2-1719417920 default-route-openshift-image-registry.apps-crc.testing/cicd/rhtas-cosign-rhel9:1.0.2-1719417920
+podman login default-route-openshift-image-registry.apps-crc.testing -u $(oc whoami) -p $(oc whoami -t)
+podman push default-route-openshift-image-registry.apps-crc.testing/cicd/rhtas-cosign-rhel9:1.0.2-1719417920 --remove-signatures
+```
+
+After that, apply the following YAMLs.
+
+```shell
+oc apply -f cicd/config/keyless-signing-info.yaml -n cicd
+oc apply -f cicd/config/ocp-cert-configmap.yaml -n cicd
+oc apply -f cicd/config/quay-creds.yaml -n cicd
 oc adm policy add-role-to-user edit system:serviceaccount:cicd:pipeline -n game
 oc secret link pipeline quay-creds --for=mount -n cicd
 ```
 
 5 - Run the pipeline
 
-```
-oc apply -f cicd/pipelinerun.yaml -n cicd
+```shell
+oc create -f cicd/pipeline/pr-build-and-sign-image.yaml -n cicd
+oc create -f cicd/pipeline/pr-verify-signature.yaml -n cicd
 ```
 
 ## Tips and tricks
